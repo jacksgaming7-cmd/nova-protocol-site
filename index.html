@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nova Protocol — TAH Games</title>
+<meta name="description" content="A neon arena horde shooter. 3,600 enemies at once, one ship, and a grid floor that buckles under the swarm.">
+<style>
+  :root{
+    --bg:#04080F; --surface:#090E1C; --border:#162236; --border2:#1E3050;
+    --cyan:#18E8FF; --magenta:#FF28E0; --gold:#FFB818; --green:#18FFB0;
+    --text:#B8CCE0; --dim:#5A6C7E; --heading:#E0F0FF;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);
+       font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;
+       font-size:15px;line-height:1.65;overflow-x:hidden}
+  body::after{content:'';position:fixed;inset:0;z-index:5;pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.05) 2px,rgba(0,0,0,.05) 4px)}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+
+  /* ---- hero ---- */
+  .hero{position:relative;overflow:hidden;padding:96px 0 84px;text-align:center;
+        border-bottom:1px solid var(--border2)}
+  .grid-floor{position:absolute;left:-25%;right:-25%;bottom:0;height:46%;z-index:0;
+    background-image:
+      repeating-linear-gradient(90deg,rgba(24,232,255,.30) 0 1px,transparent 1px 62px),
+      repeating-linear-gradient(0deg,rgba(24,232,255,.22) 0 1px,transparent 1px 46px);
+    transform:perspective(340px) rotateX(74deg);transform-origin:bottom center;
+    mask-image:linear-gradient(to top,#000 5%,transparent 92%);
+    -webkit-mask-image:linear-gradient(to top,#000 5%,transparent 92%)}
+  .horizon{position:absolute;left:0;right:0;bottom:46%;height:1px;z-index:1;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    box-shadow:0 0 22px rgba(24,232,255,.6)}
+  .hero-in{position:relative;z-index:2}
+  .studio{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;
+          text-transform:uppercase;color:var(--cyan);margin-bottom:20px}
+  h1{font-size:clamp(42px,9vw,78px);font-weight:800;color:#fff;letter-spacing:-.035em;
+     line-height:1;margin-bottom:18px;
+     text-shadow:0 0 26px rgba(24,232,255,.55),0 0 60px rgba(24,232,255,.22)}
+  .tag{font-size:clamp(15px,2.2vw,18px);color:var(--text);max-width:640px;
+       margin:0 auto 30px;text-wrap:balance}
+  .cta{display:inline-flex;align-items:center;gap:10px;background:var(--cyan);color:#04080F;
+       font-weight:800;font-size:15px;letter-spacing:.01em;text-decoration:none;
+       padding:14px 30px;border-radius:7px;transition:transform .12s,box-shadow .12s;
+       box-shadow:0 0 28px rgba(24,232,255,.4)}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(24,232,255,.62)}
+  .cta-sub{margin-top:14px;font-size:12.5px;color:var(--dim);font-family:ui-monospace,monospace}
+
+  /* ---- stat strip ---- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);
+         border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--bg);padding:26px 16px;text-align:center}
+  .stat b{display:block;font-family:ui-monospace,monospace;font-size:26px;color:var(--cyan);
+          font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .stat span{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+             color:var(--dim);margin-top:7px}
+
+  /* ---- sections ---- */
+  section{padding:72px 0}
+  h2{font-size:26px;font-weight:700;color:var(--heading);letter-spacing:-.02em;margin-bottom:10px}
+  .lead{color:var(--dim);font-size:14px;margin-bottom:34px;max-width:640px}
+  .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:820px){.feat{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px 24px;
+        transition:border-color .15s}
+  .card:hover{border-color:var(--border2)}
+  .card h3{font-size:15px;color:var(--heading);margin-bottom:8px;font-weight:700}
+  .card p{font-size:13.5px;color:var(--dim);line-height:1.6}
+  .card .k{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--cyan);display:block;margin-bottom:11px}
+
+  /* ---- shots (drop images in later) ---- */
+  .shots{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  @media(max-width:720px){.shots{grid-template-columns:1fr}}
+  .shot{aspect-ratio:16/9;background:var(--surface);border:1px dashed var(--border2);
+        border-radius:10px;display:flex;align-items:center;justify-content:center;
+        color:var(--dim);font-family:ui-monospace,monospace;font-size:11.5px;letter-spacing:.1em;
+        overflow:hidden}
+  .shot img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* ---- footer ---- */
+  footer{border-top:1px solid var(--border2);padding:40px 0 60px;
+         color:var(--dim);font-size:13px}
+  .frow{display:flex;justify-content:space-between;gap:22px;flex-wrap:wrap;align-items:center}
+  footer a{color:var(--cyan);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  .fnav{display:flex;gap:20px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="grid-floor"></div>
+  <div class="horizon"></div>
+  <div class="hero-in wrap">
+    <div class="studio">TAH Games</div>
+    <h1>Nova Protocol</h1>
+    <p class="tag">Thousands of neon wireframe enemies. One ship. A grid floor that buckles
+       under the swarm.</p>
+    <a class="cta" href="https://store.steampowered.com/app/5005580/" rel="noopener">Wishlist on Steam →</a>
+    <div class="cta-sub">Windows · Coming soon</div>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><b>3,600</b><span>Enemies at once</span></div>
+  <div class="stat"><b>35</b><span>Perks &amp; evolutions</span></div>
+  <div class="stat"><b>5</b><span>Playable ships</span></div>
+  <div class="stat"><b>6</b><span>Boss encounters</span></div>
+</div>
+
+<section class="wrap">
+  <h2>Build a run. Break the swarm.</h2>
+  <p class="lead">An arena horde shooter that does not slow down — auto-firing, escalating, and
+     built around a draft that grows as you specialise.</p>
+  <div class="feat">
+    <div class="card">
+      <span class="k">The draft</span>
+      <h3>A pool that grows with you</h3>
+      <p>Every level-up deals four cards from a pool weighted by rarity. Six evolutions stay hidden
+         until you have earned them, so two differently-built runs never see the same options.</p>
+    </div>
+    <div class="card">
+      <span class="k">The swarm</span>
+      <h3>Scale you can feel</h3>
+      <p>Thirteen enemy types, thousands on screen at once, and a boss every five waves cycling the
+         whole roster — ending in a Black Hole that bends the arena around it.</p>
+    </div>
+    <div class="card">
+      <span class="k">The risk</span>
+      <h3>Loot you have to go and get</h3>
+      <p>Chests spawn outside the safe kiting circle and get dearer each time you open one. One in
+         four is a totem — free, but it makes the rest of the run permanently harder.</p>
+    </div>
+    <div class="card">
+      <span class="k">Between runs</span>
+      <h3>Progress that sticks</h3>
+      <p>Bank credits into an armory, a six-node research tree and five ships with genuinely
+         different profiles. Nothing gated — a new player gets the whole game on run one.</p>
+    </div>
+    <div class="card">
+      <span class="k">Modes</span>
+      <h3>Five ways to play</h3>
+      <p>Survival, Time Trial, Custom, Loadout and Expedition — plus Final Stand, an endless
+         escalation that starts where the boss ladder ends.</p>
+    </div>
+    <div class="card">
+      <span class="k">Comfort</span>
+      <h3>Built to be playable</h3>
+      <p>Full controller support, a screen-shake slider, a damage-flash toggle, a reduced-flashing
+         mode for photosensitivity, and a render-resolution setting that is a real performance lever.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>Screenshots</h2>
+  <p class="lead">Coming with the store page.</p>
+  <!-- Drop images in here later: replace each placeholder div's contents with
+       <img src="shots/01.png" alt="">  — the container already crops to 16:9. -->
+  <div class="shots">
+    <div class="shot">SCREENSHOT 01</div>
+    <div class="shot">SCREENSHOT 02</div>
+    <div class="shot">SCREENSHOT 03</div>
+    <div class="shot">SCREENSHOT 04</div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div class="frow">
+    <div>
+      <strong style="color:var(--heading)">Nova Protocol</strong> — a game by TAH Games.<br>
+      Support: <a href="mailto:REPLACE-WITH-YOUR-SUPPORT-EMAIL">REPLACE-WITH-YOUR-SUPPORT-EMAIL</a>
+    </div>
+    <div class="fnav">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="https://store.steampowered.com/app/5005580/" rel="noopener">Steam</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
